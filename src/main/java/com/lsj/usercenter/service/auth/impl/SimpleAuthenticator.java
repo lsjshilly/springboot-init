@@ -29,18 +29,18 @@ public class SimpleAuthenticator implements Authenticator {
             return BaseResponse.error(ErrCode.ERR_NOT_LOGIN, "用户未登录");
         }
 
-        String permissions = ctx.getUserDTO().getPermissions();
-        List<String> permissionList = JSONUtil.toList(permissions, String.class);
+        String roles = ctx.getUserDTO().getRoles();
+        List<String> rolesList = JSONUtil.toList(roles, String.class);
 
         if (!anyRoles.isEmpty()) {
-            long count = anyRoles.stream().filter(permissionList::contains).count();
+            long count = anyRoles.stream().filter(rolesList::contains).count();
             if (count == 0) {
                 return BaseResponse.error(ErrCode.ERR_ACCESS_DENEY, "无权限");
             }
         }
 
         if (!mustRoles.isEmpty()) {
-            long count = mustRoles.stream().filter(permissionList::contains).count();
+            long count = mustRoles.stream().filter(rolesList::contains).count();
             if (count != mustRoles.size()) {
                 return BaseResponse.error(ErrCode.ERR_ACCESS_DENEY, "无权限");
             }

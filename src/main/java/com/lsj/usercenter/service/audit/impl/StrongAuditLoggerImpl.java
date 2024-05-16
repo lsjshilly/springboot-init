@@ -4,7 +4,7 @@ import com.lsj.usercenter.model.common.BaseResponse;
 import com.lsj.usercenter.model.common.ErrCode;
 import com.lsj.usercenter.model.domain.OperationLog;
 import com.lsj.usercenter.model.domain.RequestContext;
-import com.lsj.usercenter.model.execption.BusinessExecption;
+import com.lsj.usercenter.model.common.BusinessExecption;
 import com.lsj.usercenter.service.audit.AuditAdapter;
 import com.lsj.usercenter.service.audit.AuditLogger;
 import jakarta.servlet.http.HttpServletRequest;

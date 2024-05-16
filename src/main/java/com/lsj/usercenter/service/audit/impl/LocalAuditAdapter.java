@@ -12,11 +12,11 @@ public class LocalAuditAdapter implements AuditAdapter {
     @Override
     public void submit(OperationLog operationLog) {
         String result = operationLog.isFinished() ? (operationLog.isFailed() ? "Failed" : "Success") : "Running";
-        log.info("##### StartTime:{}, Operation:{}, User:{}, Client:{}, Errcode:{}, ErrMsg:{}, EndTime:{}, Result:{}",
+        log.info("##### StartTime:{},Client:{}, User:{}, Operation:{}, Errcode:{}, ErrMsg:{}, EndTime:{}, Result:{}",
         operationLog.getStartTime(),
-                operationLog.getOperationName(),
-                operationLog.getUserId(),
                 operationLog.getClient(),
+                operationLog.getUserId(),
+                operationLog.getOperationName(),
                 operationLog.getErrCode(),
                 operationLog.getErrMsg(),
                 operationLog.getEndTime(),

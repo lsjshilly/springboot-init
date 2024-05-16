@@ -46,8 +46,12 @@ public enum ErrCode {
     /**
      * 登录失败
      */
-    ERR_LOGIN_ERROR(110102, "登录失败");
+    ERR_LOGIN_ERROR(110102, "登录失败"),
 
+    /**
+     * 注册 失败
+     */
+    ERR_REGISTER_ERROR(110103, "注册失败");
 
     private final int code;
     private final String message;

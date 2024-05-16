@@ -7,9 +7,11 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lsj.usercenter.mapper.UserMapper;
 import com.lsj.usercenter.model.common.BaseResponse;
+import com.lsj.usercenter.model.common.BusinessExecption;
 import com.lsj.usercenter.model.common.ErrCode;
 import com.lsj.usercenter.model.dto.user.UserDTO;
 import com.lsj.usercenter.model.dto.user.UserLoginRequest;
+import com.lsj.usercenter.model.dto.user.UserLoginResult;
 import com.lsj.usercenter.model.dto.user.UserRegisterRequest;
 import com.lsj.usercenter.model.entity.User;
 import com.lsj.usercenter.service.user.UserService;
@@ -40,28 +42,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     @Override
-    public BaseResponse doLogin(UserLoginRequest userLoginRequest) {
+    public UserLoginResult doLogin(UserLoginRequest userLoginRequest) {
         if (ACCOUNT_LOGIN_TYPE.equals(userLoginRequest.getLoginType())) {
             return accountLogin(userLoginRequest);
         } else if (PHONE_LOGIN_TYPE.equals(userLoginRequest.getLoginType())) {
             return phoneLogin(userLoginRequest);
         } else {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "登录类型错误");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "登录类型错误");
         }
     }
 
     @Override
-    public BaseResponse register(UserRegisterRequest userRegisterRequest) {
+    public UserDTO register(UserRegisterRequest userRegisterRequest) {
         if (RegexUtils.invalidUsername(userRegisterRequest.getUsername())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "用户名不合法，仅支持中英文、数字、下划线、中划线、@及.，4-32长度");
+            throw new BusinessExecption(ErrCode.ERR_REGISTER_ERROR, "用户名不合法，仅支持中英文、数字、下划线、中划线、@及.，4-32长度");
         }
         if (RegexUtils.invalidPassword(userRegisterRequest.getPassword())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "密码不合法，仅中应为、数字、下划线、中划线及特殊符号@.#$%&*!，8-32长度");
+            throw new BusinessExecption(ErrCode.ERR_REGISTER_ERROR, "密码不合法，仅中应为、数字、下划线、中划线及特殊符号@.#$%&*!，8-32长度");
         }
 
         User existUser = query().eq("username", userRegisterRequest.getUsername()).one();
         if (existUser != null) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "用户名已存在");
+            throw new BusinessExecption(ErrCode.ERR_REGISTER_ERROR, "用户名已存在");
         }
 
         String encryptPassword = DigestUtils.md5Hex(SALT + userRegisterRequest.getPassword());
@@ -70,32 +72,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setUsername(userRegisterRequest.getUsername());
         user.setPassword(encryptPassword);
         user.setNickname("user_" + RandomUtil.randomString(10));
-        save(user);
-        return BaseResponse.success();
+        boolean saved = save(user);
+        if (!saved) {
+            throw new BusinessExecption(ErrCode.ERR_REGISTER_ERROR, "数据库异常");
+        }
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        return userDTO;
     }
 
     @Override
-    public BaseResponse getUserDetail(long id) {
-        return null;
+    public UserDTO getLoginUser(long userId) {
+        if (userId <=0) {
+            return null;
+        }
+        User user = getById(userId);
+        return BeanUtil.copyProperties(user, UserDTO.class);
     }
 
 
-    private BaseResponse phoneLogin(UserLoginRequest userLoginRequest) {
+    private UserLoginResult phoneLogin(UserLoginRequest userLoginRequest) {
         if (RegexUtils.invalidphone(userLoginRequest.getPhone())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "无效的手机号");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "无效的手机号");
         }
 
         User existUser = query().eq("phone", userLoginRequest.getPhone()).one();
 
         if (existUser == null) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "手机号未注册");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "手机号未注册");
         }
 
 
         String code = stringRedisTemplate.opsForValue().get(LOGIN_USER_CODE_PREFIX + userLoginRequest.getPhone());
 
         if (StringUtils.isBlank(code) || !code.equals(userLoginRequest.getCode())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "验证码错误");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "验证码错误");
         }
 
 
@@ -103,25 +114,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         saveInRedis(existUser, token);
 
-        return BaseResponse.success(token);
+        return new UserLoginResult(token, "");
 
     }
 
     private void saveInRedis(User existUser, String token) {
-        UserDTO userDTO = BeanUtil.toBean(existUser, UserDTO.class);
 
-        stringRedisTemplate.opsForValue().set(LOGIN_USER_TOKEN_PREFIX + token,
-                JSONUtil.toJsonStr(userDTO)
+        stringRedisTemplate.opsForValue().set(LOGIN_USER_TOKEN_PREFIX + token,existUser.getId().toString()
+
         );
         stringRedisTemplate.expire(LOGIN_USER_TOKEN_PREFIX + token, LOGIN_USER_TOKEN_TTL, TimeUnit.MINUTES);
     }
 
-    private BaseResponse accountLogin(UserLoginRequest userLoginRequest) {
+    private UserLoginResult accountLogin(UserLoginRequest userLoginRequest) {
         if (RegexUtils.invalidUsername(userLoginRequest.getUsername())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "无效的用户名");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "无效的用户名");
         }
         if (RegexUtils.invalidPassword(userLoginRequest.getPassword())) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "无效的密码");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "无效的密码");
         }
 
 
@@ -132,14 +142,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .one();
 
         if (existUser == null) {
-            return BaseResponse.error(ErrCode.ERR_LOGIN_ERROR, "用户名或密码错误");
+            throw new BusinessExecption(ErrCode.ERR_LOGIN_ERROR, "用户名或密码错误");
         }
 
         String token = UUID.randomUUID().toString(true);
 
         saveInRedis(existUser, token);
 
-        return BaseResponse.success(token);
+        return new UserLoginResult(token, "");
     }
 }
 

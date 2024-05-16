@@ -2,7 +2,7 @@ package com.lsj.usercenter.utils;
 
 import com.lsj.usercenter.model.common.ErrCode;
 import com.lsj.usercenter.model.dto.user.UserDTO;
-import com.lsj.usercenter.model.execption.BusinessExecption;
+import com.lsj.usercenter.model.common.BusinessExecption;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

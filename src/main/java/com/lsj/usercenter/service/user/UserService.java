@@ -2,7 +2,9 @@ package com.lsj.usercenter.service.user;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lsj.usercenter.model.common.BaseResponse;
+import com.lsj.usercenter.model.dto.user.UserDTO;
 import com.lsj.usercenter.model.dto.user.UserLoginRequest;
+import com.lsj.usercenter.model.dto.user.UserLoginResult;
 import com.lsj.usercenter.model.dto.user.UserRegisterRequest;
 import com.lsj.usercenter.model.entity.User;
 
@@ -13,9 +15,9 @@ import com.lsj.usercenter.model.entity.User;
  */
 public interface UserService extends IService<User> {
 
-    BaseResponse doLogin(UserLoginRequest userLoginRequest);
+    UserLoginResult doLogin(UserLoginRequest userLoginRequest);
 
-    BaseResponse register(UserRegisterRequest userRegisterRequest);
+    UserDTO register(UserRegisterRequest userRegisterRequest);
 
-    BaseResponse getUserDetail(long id);
+    UserDTO getLoginUser(long userId);
 }

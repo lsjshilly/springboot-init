@@ -1,4 +1,4 @@
-package com.lsj.usercenter.model.execption;
+package com.lsj.usercenter.model.common;
 
 
 import com.lsj.usercenter.model.common.ErrCode;

@@ -2,7 +2,7 @@ package com.lsj.usercenter.config;
 
 
 import com.lsj.usercenter.model.common.BaseResponse;
-import com.lsj.usercenter.model.execption.BusinessExecption;
+import com.lsj.usercenter.model.common.BusinessExecption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

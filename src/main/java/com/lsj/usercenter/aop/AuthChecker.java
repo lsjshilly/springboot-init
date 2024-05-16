@@ -9,21 +9,20 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Operator {
+public @interface AuthChecker {
+
 
     /**
-     * 操作名称
-     * @return 操作名称
+     * 任意角色符合
+     * @return 【】
      */
-    String value() default "";
-
+    String[] anyRoles() default {};
 
     /***
-     * 是否记录操作日志
-     * @return 是否及记录日志
+     * 必须包含角色
+     * @return 【】
      */
-    boolean auditEnabled() default true;
-
+    String[] mustRoles() default{};
 
 
 }
